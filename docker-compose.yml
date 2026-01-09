@@ -1,0 +1,50 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --sql-mode="STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  kgs:
+    build:
+      context: ./kgs-service
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./kgs-service:/var/www/html
+    ports:
+      - "8081:80"
+
+  shortener:
+    build:
+      context: ./shortener-api
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    depends_on:
+      - mysql
+      - redis
+      - kgs
+    volumes:
+      - ./shortener-api:/var/www/html
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql_data:
