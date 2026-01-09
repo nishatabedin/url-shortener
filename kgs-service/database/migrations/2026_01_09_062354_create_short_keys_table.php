@@ -12,8 +12,8 @@ return new class extends Migration {
             $table->id();
             $table->string('key', 16)->unique(); 
             $table->unsignedTinyInteger('status')->default(0); // 0=unused, 1=used
-            $table->timestampNullable('reserved_at');
-            $table->timestampNullable('used_at');
+            $table->timestamp('reserved_at')->nullable();
+            $table->timestamp('used_at')->nullable();
             $table->timestamps();
 
             $table->index(['status', 'id']);
