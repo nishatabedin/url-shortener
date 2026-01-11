@@ -49,25 +49,42 @@ final class KgsService
         $toCreate = max(0, $this->poolTarget - $len);
         if ($toCreate <= 0) return;
 
-        $keys = $this->generateKeys($toCreate);
+        $keysToPush = [];
+        $remaining = $toCreate;
+        $attempts = 0;
 
-        // Insert keys as unused
-        DB::transaction(function () use ($keys) {
-            $rows = array_map(fn ($k) => [
-                'key' => $k,
-                'status' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ], $keys);
+        while ($remaining > 0 && $attempts < 5) {
+            $attempts++;
+            $now = now();
+            $keys = $this->generateKeys($remaining);
 
-            // chunk insert for big sizes
-            foreach (array_chunk($rows, 2000) as $chunk) {
-                DB::table('short_keys')->insert($chunk);
+            $inserted = DB::transaction(function () use ($keys, $now) {
+                $rows = array_map(fn ($k) => [
+                    'key' => $k,
+                    'status' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ], $keys);
+
+                foreach (array_chunk($rows, 2000) as $chunk) {
+                    DB::table('short_keys')->insertOrIgnore($chunk);
+                }
+
+                return DB::table('short_keys')
+                    ->whereIn('key', $keys)
+                    ->where('created_at', $now)
+                    ->pluck('key')
+                    ->all();
+            });
+
+            $keysToPush = array_merge($keysToPush, $inserted);
+            $remaining -= count($inserted);
+            if ($remaining > 0 && count($inserted) === 0) {
+                break;
             }
-        });
+        }
 
-        // Push to Redis pool
-        foreach ($keys as $k) {
+        foreach ($keysToPush as $k) {
             Redis::lpush($this->poolKey, $k);
         }
     }
