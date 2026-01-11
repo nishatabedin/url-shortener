@@ -84,7 +84,7 @@ final class KgsService
             }
         }
 
-        foreach ($keysToPush as $k) {
+        foreach (array_unique($keysToPush) as $k) {
             Redis::lpush($this->poolKey, $k);
         }
     }
@@ -93,8 +93,22 @@ final class KgsService
     {
         // Counter is the uniqueness guarantee (no collision)
         return DB::transaction(function () use ($count) {
-            // Lock the single counter row
+            // Lock or create the single counter row
             $row = DB::table('key_counters')->where('id', 1)->lockForUpdate()->first();
+            if (!$row) {
+                DB::table('key_counters')->insertOrIgnore([
+                    'id' => 1,
+                    'value' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $row = DB::table('key_counters')->where('id', 1)->lockForUpdate()->first();
+            }
+
+            if (!$row) {
+                throw new \RuntimeException('Key counter row missing');
+            }
+
             $start = (int) $row->value + 1;
             $end = $start + $count - 1;
 
@@ -128,7 +142,11 @@ final class KgsService
 
             DB::table('short_keys')
                 ->whereIn('key', $keys)
-                ->update(['reserved_at' => now(), 'updated_at' => now()]);
+                ->update([
+                    'status' => 2,
+                    'reserved_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
             return $keys;
         });
