@@ -11,7 +11,7 @@ return new class extends Migration {
         Schema::create('short_keys', function (Blueprint $table) {
             $table->id();
             $table->string('key', 16)->unique(); 
-            $table->unsignedTinyInteger('status')->default(0); // 0=unused, 1=used
+            $table->unsignedTinyInteger('status')->default(0); // 0=unused, 1=used, 2=reserved
             $table->timestamp('reserved_at')->nullable();
             $table->timestamp('used_at')->nullable();
             $table->timestamps();
