@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 set -e
 
+if [ "${APP_ENV:-}" != "production" ]; then
+  if [ ! -d vendor ] && command -v composer >/dev/null 2>&1; then
+    composer install --no-interaction --prefer-dist
+  fi
+fi
+
 if [ "${APP_ENV:-}" = "production" ]; then
   if [ -f artisan ]; then
     php artisan config:cache
