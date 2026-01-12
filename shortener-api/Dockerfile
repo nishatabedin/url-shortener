@@ -9,8 +9,15 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+COPY composer.json ./
+RUN composer update --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+COPY . /var/www/html
+
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
-CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+CMD ["/usr/local/bin/entrypoint.sh"]

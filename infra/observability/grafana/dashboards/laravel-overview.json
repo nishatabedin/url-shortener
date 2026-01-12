@@ -1,0 +1,49 @@
+{
+  "uid": "laravel-overview",
+  "title": "Laravel HTTP Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP p95 latency (s)",
+      "id": 1,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(laravel_http_request_duration_seconds_bucket[5m])) by (le, service, route))",
+          "legendFormat": "{{service}} {{route}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP 5xx error rate",
+      "id": 2,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(laravel_http_responses_total{status=~\"5..\"}[5m])) / sum(rate(laravel_http_responses_total[5m]))",
+          "legendFormat": "error_ratio"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "DB query p95 (s)",
+      "id": 3,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(laravel_db_query_duration_seconds_bucket[5m])) by (le, service, connection))",
+          "legendFormat": "{{service}} {{connection}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+    }
+  ]
+}
