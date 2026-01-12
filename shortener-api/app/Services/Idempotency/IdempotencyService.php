@@ -4,19 +4,19 @@ namespace App\Services\Idempotency;
 
 use App\Models\IdempotencyKey;
 use Illuminate\Cache\Lock;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 
 class IdempotencyService
 {
-    public function handle(Request $request, callable $next): JsonResponse
+    public function handle(Request $request, callable $next): Response
     {
         $idempotencyKey = $request->header('Idempotency-Key');
         if (!$idempotencyKey) {
-            /** @var JsonResponse $response */
+            /** @var Response $response */
             $response = $next($request);
             return $response;
         }
@@ -60,7 +60,7 @@ class IdempotencyService
         );
 
         try {
-            /** @var JsonResponse $response */
+            /** @var Response $response */
             $response = $next($request);
         } finally {
             $lock->release();
@@ -87,7 +87,7 @@ class IdempotencyService
         return hash('sha256', json_encode($payload));
     }
 
-    private function normalizeResponseBody(JsonResponse $response): array
+    private function normalizeResponseBody(Response $response): array
     {
         $contentType = (string) $response->headers->get('Content-Type');
 
