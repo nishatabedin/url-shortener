@@ -12,11 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
-    ->withMiddleware(function ($middleware) {
+        $middleware->append([
+            \App\Http\Middleware\RequestIdMiddleware::class,
+            \App\Http\Middleware\PrometheusMetricsMiddleware::class,
+        ]);
+
         $middleware->alias([
             'apikey' => \App\Http\Middleware\ApiKeyAuth::class,
+            'idempotency' => \App\Http\Middleware\IdempotencyMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
