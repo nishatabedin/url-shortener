@@ -3,28 +3,32 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
 use Laravel\Telescope\TelescopeApplicationServiceProvider;
 
-class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
+class TelescopeServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        if (!config('telescope.enabled')) {
+        if (!config('telescope.enabled') || !class_exists(TelescopeApplicationServiceProvider::class)) {
             return;
         }
 
-        parent::register();
+        $this->app->register(TelescopeApplicationServiceProvider::class);
     }
 
     public function boot(): void
     {
-        if (!config('telescope.enabled')) {
+        if (!config('telescope.enabled') || !class_exists(TelescopeApplicationServiceProvider::class)) {
             return;
         }
 
-        parent::boot();
+        $provider = $this->app->getProvider(TelescopeApplicationServiceProvider::class);
+        if ($provider) {
+            $provider->boot();
+        }
 
         Telescope::filter(function (IncomingEntry $entry) {
             return true;
