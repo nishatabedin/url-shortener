@@ -5,10 +5,10 @@ namespace App\Services\Idempotency;
 use App\Models\IdempotencyKey;
 use Illuminate\Cache\Lock;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class IdempotencyService
 {
