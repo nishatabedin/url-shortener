@@ -39,6 +39,7 @@ services:
   kgs-dev:
     build:
       context: ./kgs-service
+      dockerfile: Dockerfile.dev
     profiles:
       - dev
     env_file:
@@ -67,6 +68,7 @@ services:
   shortener-dev:
     build:
       context: ./shortener-api
+      dockerfile: Dockerfile.dev
     profiles:
       - dev
     env_file:

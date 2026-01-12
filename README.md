@@ -14,6 +14,12 @@ It also includes **observability** (Prometheus, Grafana, Loki/Promtail, Jaeger) 
 make up-dev
 ```
 
+If you haven't installed PHP dependencies locally yet, run:
+```bash
+cd shortener-api && composer install
+cd ../kgs-service && composer install
+```
+
 ### PROD-like mode (cached + opcache enabled)
 ```bash
 make up-prod

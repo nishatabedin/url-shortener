@@ -101,6 +101,7 @@ Request
 - `architecture-doc/README.md` — this document.
 
 ### shortener-api
+- `Dockerfile.dev` — Dev image (no composer install, relies on bind mount).
 - `app/Http/Middleware/RequestIdMiddleware.php` — generates/propagates `X-Request-Id`.
 - `app/Http/Middleware/PrometheusMetricsMiddleware.php` — captures HTTP metrics.
 - `app/Http/Middleware/IdempotencyMiddleware.php` — wraps POST requests with idempotency.
@@ -119,6 +120,7 @@ Request
 - `.env.dev` / `.env.prod` — environment-specific configs.
 
 ### kgs-service
+- `Dockerfile.dev` — Dev image (no composer install, relies on bind mount).
 - `app/Http/Middleware/RequestIdMiddleware.php` — generates/propagates `X-Request-Id`.
 - `app/Http/Middleware/PrometheusMetricsMiddleware.php` — captures HTTP metrics.
 - `app/Observability/TraceContext.php` — pulls trace id from OTel spans.
