@@ -34,7 +34,7 @@ load-test:
 init-dev:
 # 	$(COMPOSE) --profile dev exec kgs-dev php artisan vendor:publish --tag=telescope-migrations --force
 # 	$(COMPOSE) --profile dev exec shortener-dev php artisan vendor:publish --tag=telescope-migrations --force
-	$(COMPOSE) --profile dev exec kgs-dev php artisan migrate --force
-	$(COMPOSE) --profile dev exec shortener-dev php artisan migrate --path=database/migrations/primary --force
+	$(COMPOSE) --profile dev exec kgs-dev php artisan migrate:fresh
+	$(COMPOSE) --profile dev exec shortener-dev php artisan migrate:fresh --path=database/migrations/primary
 	$(COMPOSE) --profile dev exec shortener-dev php artisan shards:migrate --fresh
-	$(COMPOSE) --profile dev exec shortener-dev php artisan migrate --force
+	$(COMPOSE) --profile dev exec shortener-dev php artisan migrate
