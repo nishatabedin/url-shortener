@@ -2,8 +2,16 @@
 set -e
 
 if [ "${APP_ENV:-}" != "production" ]; then
-  if [ ! -d vendor ] && command -v composer >/dev/null 2>&1; then
-    composer install --no-interaction --prefer-dist
+  if command -v composer >/dev/null 2>&1; then
+    if [ ! -f vendor/autoload.php ]; then
+      composer install --no-interaction --prefer-dist
+    elif [ -f composer.lock ] && [ ! -f vendor/composer/installed.json ]; then
+      composer install --no-interaction --prefer-dist
+    elif [ -f composer.lock ] && [ composer.lock -nt vendor/composer/installed.json ]; then
+      composer install --no-interaction --prefer-dist
+    elif [ -f composer.json ] && [ composer.json -nt vendor/composer/installed.json ]; then
+      composer install --no-interaction --prefer-dist
+    fi
   fi
 fi
 
