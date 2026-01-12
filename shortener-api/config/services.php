@@ -36,7 +36,7 @@ return [
     ],
     
     'kgs' => [
-        'base_url' => env('KGS_BASE_URL', 'http://kgs'),
+        'base_url' => env('KGS_BASE_URL', 'http://kgs-dev'),
     ],
 
 ];
