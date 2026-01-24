@@ -155,6 +155,12 @@ Shortener API continues as normal:
 - Base62 encoding turns numeric ranges into short codes without collisions.
 - Once inserted to DB, those keys are pushed into Redis to restore fast-path performance.
 
+**When multiple refillers can happen (why the lock matters)**
+
+- **Scheduled maintenance + traffic spike:** The `kgs:ensure-pool` scheduler can be running on multiple KGS instances while API traffic triggers a fallback `ensurePool()` at the same time.
+- **Horizontal scale:** If you run 2–3 KGS replicas behind a load balancer, each replica may notice the pool is below `pool_min` and try to refill concurrently.
+- The row-level counter lock ensures **only one refill allocates a given numeric range**, so every refill remains non-overlapping and safe even under concurrency.
+
 **Key implementation links**
 
 - `KgsService::ensurePool()` is scheduled to run and can be called on demand via admin route.【F:kgs-service/app/Console/Commands/KgsEnsurePool.php†L1-L20】【F:kgs-service/routes/api.php†L1-L15】
