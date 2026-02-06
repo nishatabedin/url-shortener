@@ -114,3 +114,21 @@ Key environment variables (already set in `.env.dev` / `.env.prod`):
 - `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`
 - `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`
 - `OTEL_TRACES_EXPORTER=otlp`
+
+### Loki log queries
+
+Requests are logged as JSON to stderr and Promtail extracts useful labels such as `method`, `route`, `status`, and `trace_id`.
+
+Example queries:
+
+```
+{container="/url-shortener-system-shortener-dev-1"}
+```
+
+```
+{container="/url-shortener-system-shortener-dev-1", method="POST", route="api/v1/shorten"}
+```
+
+```
+{container="/url-shortener-system-shortener-dev-1"} | json | trace_id="...your-trace-id..."
+```
