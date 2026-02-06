@@ -5,7 +5,7 @@ This repo runs two Laravel services with Docker Compose:
 - **shortener-api**: public API for creating short URLs and redirecting.
 - **kgs-service**: key-generation service for unique short codes.
 
-It also includes **observability** (Prometheus, Grafana, Loki/Promtail, Jaeger) and **load testing** (k6) with a DEV vs PROD-like setup.
+It also includes **observability** (OpenTelemetry Collector, Prometheus, Grafana, Loki/Promtail, Jaeger) and **load testing** (k6) with a DEV vs PROD-like setup.
 
 ## Quick start
 
@@ -65,6 +65,7 @@ make load-test K6_SCRIPT=spike.js
 | grafana | 3000 | dashboards |
 | prometheus | 9090 | metrics |
 | jaeger | 16686 | traces |
+| otel-collector | 4318 | OTLP/HTTP ingest (gRPC is internal) |
 | loki | 3100 | logs |
 | phpMyAdmin (dev only) | 8083 | DB UI |
 
@@ -100,3 +101,34 @@ mysql-init/              # DB init SQL
 ## Documentation
 
 See `architecture-doc/README.md` for architecture overview, diagrams, and data flow details.
+
+## OpenTelemetry tracing notes
+
+- Both Laravel services use the OpenTelemetry PHP auto-instrumentation package and emit traces to the OpenTelemetry Collector over OTLP gRPC.
+- The collector forwards traces to Jaeger for storage and visualization in Grafana.
+- Metrics remain exported via the existing Prometheus middleware, and logs remain shipped via Promtail to Loki.
+
+Key environment variables (already set in `.env.dev` / `.env.prod`):
+
+- `OTEL_PHP_AUTOLOAD_ENABLED=true`
+- `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`
+- `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`
+- `OTEL_TRACES_EXPORTER=otlp`
+
+### Loki log queries
+
+Requests are logged as JSON to stderr and Promtail extracts useful labels such as `method`, `route`, `status`, and `trace_id`.
+
+Example queries:
+
+```
+{container="/url-shortener-system-shortener-dev-1"}
+```
+
+```
+{container="/url-shortener-system-shortener-dev-1", method="POST", route="api/v1/shorten"}
+```
+
+```
+{container="/url-shortener-system-shortener-dev-1"} | json | trace_id="...your-trace-id..."
+```
