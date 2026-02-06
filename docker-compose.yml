@@ -150,6 +150,18 @@ services:
       - "16686:16686"
       - "4317:4317"
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.114.0
+    profiles:
+      - observability
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./infra/observability/otel-collector/otel-collector-config.yml:/etc/otelcol-contrib/config.yml:ro
+    ports:
+      - "4318:4318"
+    depends_on:
+      - jaeger
+
   k6:
     image: grafana/k6:0.52.0
     profiles:

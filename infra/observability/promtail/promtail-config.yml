@@ -20,3 +20,22 @@ scrape_configs:
         target_label: image
       - source_labels: [__meta_docker_container_log_stream]
         target_label: stream
+    pipeline_stages:
+      - json:
+          expressions:
+            message: message
+            level: level
+            method: context.method
+            path: context.path
+            route: context.route
+            status: context.status
+            duration_ms: context.duration_ms
+            request_id: context.request_id
+            trace_id: context.trace_id
+      - labels:
+          level:
+          method:
+          route:
+          status:
+          request_id:
+          trace_id:

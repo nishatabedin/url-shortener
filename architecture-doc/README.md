@@ -10,7 +10,7 @@ This repository contains a Laravel-based microservice architecture that provides
 - **kgs-service**: Internal key generation service to reserve unique short codes.
 - **MySQL**: Primary persistence for URLs, API keys, and idempotency records.
 - **Redis**: Cache for hot URL lookups and idempotency locks.
-- **Observability stack**: Prometheus, Grafana, Loki + Promtail, Jaeger.
+- **Observability stack**: OpenTelemetry Collector, Prometheus, Grafana, Loki + Promtail, Jaeger.
 - **k6**: Load testing runner.
 
 ## High-level architecture (text diagram)
@@ -23,17 +23,31 @@ This repository contains a Laravel-based microservice architecture that provides
                                   |
                                   | reads
                                   v
-+-----------+   /metrics   +---------------+     traces     +------------------+
-| shortener |------------->|  Prometheus   |<-------------->|      Jaeger      |
-|  service  |              +---------------+                +------------------+
-|           |   logs               ^
-|           |----------------------|
-+-----------+                      |
+                         +---------------+
+                         |  Prometheus   |
+                         +---------------+
+                                  ^
+                                  | /metrics
+    +-----------+                 |
+    | shortener |-----------------+
+    |  service  |--- logs ---> Loki/Promtail
+    +-----------+                 ^
                                   |
-+-----------+   /metrics   +---------------+     logs        +------------------+
-|   kgs     |------------->|  Prometheus   |<--------------- |   Loki/Promtail  |
-|  service  |              +---------------+                +------------------+
-+-----------+
+    +-----------+                 |
+    |   kgs     |--- logs --------+
+    |  service  |                 |
+    +-----------+                 |
+          |                       |
+          | OTLP traces           |
+          v                       |
+   +------------------+           |
+   |  OTel Collector  |-----------+
+   +------------------+     traces
+          |
+          v
+     +----------+
+     |  Jaeger  |
+     +----------+
 
         +-----------------+       +----------------+
         |     MySQL       |<----->|    Redis        |
@@ -80,6 +94,7 @@ Request
   |-> logs include request_id + trace_id (if available)
   |-> PrometheusMetricsMiddleware records latency + status
   |-> DB listener records query durations
+  |-> OpenTelemetry auto-instrumentation emits traces to the Collector
   v
 /metrics endpoint exposes Prometheus format
 ```
@@ -88,7 +103,7 @@ Request
 
 - **dev**: bind mounts, Telescope enabled, APP_DEBUG=true
 - **prod**: opcache + caches enabled at container start, APP_DEBUG=false
-- **observability**: Prometheus, Grafana, Loki/Promtail, Jaeger
+- **observability**: OpenTelemetry Collector, Prometheus, Grafana, Loki/Promtail, Jaeger
 - **loadtest**: k6 runner container
 
 ## Files created for this architecture (not Laravel defaults)
@@ -97,6 +112,7 @@ Request
 - `docker-compose.yml` — Profiles for dev/prod/observability/loadtest.
 - `Makefile` — Common commands (`up-dev`, `up-prod`, `down`, `logs`, `test`, `load-test`).
 - `infra/observability/*` — Prometheus, Grafana provisioning + dashboards, Loki, Promtail.
+- `infra/observability/otel-collector/otel-collector-config.yml` — OTLP ingest pipeline forwarding traces to Jaeger.
 - `k6/*` — smoke/ramping/spike load test scripts.
 - `architecture-doc/README.md` — this document.
 
