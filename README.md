@@ -104,15 +104,15 @@ See `architecture-doc/README.md` for architecture overview, diagrams, and data f
 
 ## OpenTelemetry tracing notes
 
-- Both Laravel services use the OpenTelemetry PHP auto-instrumentation package and emit traces to the OpenTelemetry Collector over OTLP gRPC.
+- Both Laravel services use the OpenTelemetry PHP auto-instrumentation package and emit traces to the OpenTelemetry Collector over OTLP HTTP/protobuf.
 - The collector forwards traces to Jaeger for storage and visualization in Grafana.
 - Metrics remain exported via the existing Prometheus middleware, and logs remain shipped via Promtail to Loki.
 
 Key environment variables (already set in `.env.dev` / `.env.prod`):
 
 - `OTEL_PHP_AUTOLOAD_ENABLED=true`
-- `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`
-- `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`
+- `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318`
+- `OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`
 - `OTEL_TRACES_EXPORTER=otlp`
 
 ### Loki log queries
